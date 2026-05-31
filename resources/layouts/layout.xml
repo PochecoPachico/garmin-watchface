@@ -1,0 +1,4 @@
+<layout id="WatchFace" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <drawable class="Background" />
+    <label id="TimeLabel" x="center" y="50" font="Gfx.FONT_LARGE" justification="Gfx.TEXT_JUSTIFY_CENTER" color="Gfx.COLOR_WHITE" />
+</layout>

@@ -1,0 +1,37 @@
+# =========================
+# Garmin Connect IQ
+# =========================
+# ビルド出力とコンパイル済みファイル
+bin/
+gen/
+internal-mir/
+*.prg
+*.iq
+
+# デベロッパーキー（※絶対にコミットしないこと！）
+*.der
+
+# シミュレータやデバッグ関連の一時ファイル
+*.debug.xml
+*.strace
+
+# =========================
+# IDE (Visual Studio Code)
+# =========================
+# VS Codeの設定やキャッシュ
+# ※チーム開発で設定を共有したい場合は .vscode/ を消してください
+.vscode/
+*.code-workspace
+
+# =========================
+# OS
+# =========================
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
