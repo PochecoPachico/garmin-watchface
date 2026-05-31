@@ -8,6 +8,8 @@ import Toybox.Time.Gregorian;
 
 class garmin_watchfaceView extends WatchUi.WatchFace {
 
+    var isSleeping as Boolean = false;
+
     function initialize() {
         WatchFace.initialize();
     }
@@ -24,7 +26,7 @@ class garmin_watchfaceView extends WatchUi.WatchFace {
     }
 
     // Update the view
-    function onUpdate(dc) {
+    function onUpdate(dc as Dc) as Void {
         // 画面を黒でリセット
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
@@ -49,9 +51,7 @@ class garmin_watchfaceView extends WatchUi.WatchFace {
     }
 
     // 文字盤のメモリ（インデックス）を描画
-    function drawDial(dc, centerX, centerY) {
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-
+    function drawDial(dc as Dc, centerX as Numeric, centerY as Numeric) as Void {
         for (var i = 0; i < 60; i += 1) {
             var angle = (i / 60.0) * Math.PI * 2 - (Math.PI / 2);
 
@@ -64,6 +64,7 @@ class garmin_watchfaceView extends WatchUi.WatchFace {
             var endX = centerX + (outerRadius * Math.cos(angle));
             var endY = centerY + (outerRadius * Math.sin(angle));
 
+            dc.setColor(isHourTick ? Graphics.COLOR_LT_GRAY : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(isHourTick ? 4 : 2);
             dc.drawLine(startX, startY, endX, endY);
         }
@@ -71,7 +72,7 @@ class garmin_watchfaceView extends WatchUi.WatchFace {
 
     // バッテリー残量のアイコンとテキストを描画
     // x, y: テキスト＋マージン＋アイコン全体の中心座標
-    function drawBattery(dc, x, y) {
+    function drawBattery(dc as Dc, x as Numeric, y as Numeric) as Void {
         var stats = System.getSystemStats();
         var battery = stats.battery.toNumber();
 
@@ -121,14 +122,14 @@ class garmin_watchfaceView extends WatchUi.WatchFace {
     }
 
     // スマホ通知件数を吹き出しアイコンと共に描画
-    function drawNotification(dc, x, y) {
+    function drawNotification(dc as Dc, x as Numeric, y as Numeric) as Void {
         var settings = System.getDeviceSettings();
         var msgString = settings.notificationCount.toString();
 
         var iconX = x - 30;
         var iconY = 275;
 
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.fillRoundedRectangle(iconX, iconY, 22, 16, 5);
 
         var tail = [
@@ -143,7 +144,7 @@ class garmin_watchfaceView extends WatchUi.WatchFace {
     }
 
     // 日付と曜日を描画
-    function drawDate(dc, x, y) {
+    function drawDate(dc as Dc, x as Numeric, y as Numeric) as Void {
         var now = Time.now();
         var dateInfo = Gregorian.info(now, Time.FORMAT_MEDIUM);
         var dateString = Lang.format("$1$ $2$", [dateInfo.day_of_week, dateInfo.day]);
@@ -153,7 +154,7 @@ class garmin_watchfaceView extends WatchUi.WatchFace {
     }
 
     // 時針・分針・秒針と中心ピニオンを描画
-    function drawHands(dc, centerX, centerY) {
+    function drawHands(dc as Dc, centerX as Numeric, centerY as Numeric) as Void {
         var clockTime = System.getClockTime();
 
         var hourFraction = (clockTime.hour % 12) + (clockTime.min / 60.0);
@@ -174,14 +175,16 @@ class garmin_watchfaceView extends WatchUi.WatchFace {
         var minY = centerY + (minRadius * Math.sin(minAngle));
         dc.drawLine(centerX, centerY, minX, minY);
 
-        var secAngle = (clockTime.sec / 60.0) * Math.PI * 2 - (Math.PI / 2);
-        var secRadius = 170;
+        if (!isSleeping) {
+            var secAngle = (clockTime.sec / 60.0) * Math.PI * 2 - (Math.PI / 2);
+            var secRadius = 170;
 
-        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(2);
-        var secX = centerX + (secRadius * Math.cos(secAngle));
-        var secY = centerY + (secRadius * Math.sin(secAngle));
-        dc.drawLine(centerX, centerY, secX, secY);
+            dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+            dc.setPenWidth(2);
+            var secX = centerX + (secRadius * Math.cos(secAngle));
+            var secY = centerY + (secRadius * Math.sin(secAngle));
+            dc.drawLine(centerX, centerY, secX, secY);
+        }
 
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.fillCircle(centerX, centerY, 8);
@@ -195,10 +198,14 @@ class garmin_watchfaceView extends WatchUi.WatchFace {
 
     // The user has just looked at their watch. Timers and animations may be started here.
     function onExitSleep() as Void {
+        isSleeping = false;
+        WatchUi.requestUpdate();
     }
 
     // Terminate any active timers and prepare for slow updates.
     function onEnterSleep() as Void {
+        isSleeping = true;
+        WatchUi.requestUpdate();
     }
 
 }
