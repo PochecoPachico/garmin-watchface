@@ -228,27 +228,38 @@ class garmin_watchfaceView extends WatchUi.WatchFace {
         dc.fillCircle(moonCenterX + 6, moonCenterY - 6, moonR);
     }
 
+    // 先細りの剣形ポリゴン針を描画
+    // angle: 針の向き（ラジアン）, length: 針の長さ, baseWidth: 根本の太さ, tipWidth: 先端の太さ
+    function drawTaperedHand(dc as Dc, centerX as Numeric, centerY as Numeric, angle as Float, length as Numeric, baseWidth as Numeric, tipWidth as Numeric) as Void {
+        var perpAngle = angle + (Math.PI / 2);
+        var perpX = Math.cos(perpAngle);
+        var perpY = Math.sin(perpAngle);
+
+        var tipX = centerX + (length * Math.cos(angle));
+        var tipY = centerY + (length * Math.sin(angle));
+
+        var points = [
+            [centerX + (baseWidth / 2) * perpX, centerY + (baseWidth / 2) * perpY],
+            [tipX + (tipWidth / 2) * perpX, tipY + (tipWidth / 2) * perpY],
+            [tipX - (tipWidth / 2) * perpX, tipY - (tipWidth / 2) * perpY],
+            [centerX - (baseWidth / 2) * perpX, centerY - (baseWidth / 2) * perpY]
+        ];
+
+        dc.fillPolygon(points);
+    }
+
     // 時針・分針・秒針と中心ピニオンを描画
     function drawHands(dc as Dc, centerX as Numeric, centerY as Numeric) as Void {
         var clockTime = System.getClockTime();
 
         var hourFraction = (clockTime.hour % 12) + (clockTime.min / 60.0);
         var hourAngle = (hourFraction / 12.0) * Math.PI * 2 - (Math.PI / 2);
-        var hourRadius = 110;
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(8);
-        var hourX = centerX + (hourRadius * Math.cos(hourAngle));
-        var hourY = centerY + (hourRadius * Math.sin(hourAngle));
-        dc.drawLine(centerX, centerY, hourX, hourY);
+        drawTaperedHand(dc, centerX, centerY, hourAngle, 110, 14, 4);
 
         var minAngle = (clockTime.min / 60.0) * Math.PI * 2 - (Math.PI / 2);
-        var minRadius = 160;
-
-        dc.setPenWidth(5);
-        var minX = centerX + (minRadius * Math.cos(minAngle));
-        var minY = centerY + (minRadius * Math.sin(minAngle));
-        dc.drawLine(centerX, centerY, minX, minY);
+        drawTaperedHand(dc, centerX, centerY, minAngle, 160, 9, 3);
 
         if (!isSleeping) {
             var secAngle = (clockTime.sec / 60.0) * Math.PI * 2 - (Math.PI / 2);
