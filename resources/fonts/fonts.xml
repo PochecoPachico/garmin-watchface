@@ -1,0 +1,19 @@
+<fonts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <!-- Barlow Semi Condensed Medium 32px — clock numerals (12/6/9/3), active/high-power -->
+    <font id="NumeralActive" filename="NumeralActive.fnt" filter="0123456789" antialias="true" />
+
+    <!-- Barlow Semi Condensed Regular 32px — clock numerals, always-on/dim -->
+    <font id="NumeralDim" filename="NumeralDim.fnt" filter="0123456789" antialias="true" />
+
+    <!-- Barlow Semi Condensed Regular 32px — date number, both states -->
+    <font id="DateNumber" filename="DateNumber.fnt" filter="0123456789" antialias="true" />
+
+    <!-- Barlow Semi Condensed SemiBold 18px — weekday label (SUN/MON/...), both states -->
+    <font id="Weekday" filename="Weekday.fnt" filter="ABCDEFGHIJKLMNOPQRSTUVWXYZ" antialias="true" />
+
+    <!-- Barlow Medium 30px — notification count + battery %, active/high-power -->
+    <font id="SmallActive" filename="SmallActive.fnt" filter="0123456789%" antialias="true" />
+
+    <!-- Barlow Regular 30px — notification count + battery %, always-on/dim -->
+    <font id="SmallDim" filename="SmallDim.fnt" filter="0123456789%" antialias="true" />
+</fonts>
