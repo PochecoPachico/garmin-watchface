@@ -8,7 +8,7 @@
     <!-- Barlow Semi Condensed Regular 32px — date number, both states -->
     <font id="DateNumber" filename="DateNumber.fnt" filter="0123456789" antialias="true" />
 
-    <!-- Barlow Semi Condensed SemiBold 18px — weekday label (SUN/MON/...), both states -->
+    <!-- Barlow Semi Condensed SemiBold ~23px (cap height 16px) — weekday label (SUN/MON/...), both states -->
     <font id="Weekday" filename="Weekday.fnt" filter="ABCDEFGHIJKLMNOPQRSTUVWXYZ" antialias="true" />
 
     <!-- Barlow Medium 30px — notification count + battery %, active/high-power -->
