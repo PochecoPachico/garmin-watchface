@@ -44,6 +44,8 @@ class garmin_watchfaceView extends WatchUi.WatchFace {
     const ROW_GAP1 = 21;
     const ROW_GAP2 = 8;
     const NOTIF_ICON_W = 23;
+    const PHONE_W = 13;
+    const PHONE_H = 21;
 
     const BATTERY_W = 36;
     const BATTERY_H = 17;
@@ -190,44 +192,82 @@ class garmin_watchfaceView extends WatchUi.WatchFace {
         dc.drawText(rightX - dateWidth - DATE_WEEKDAY_GAP, bottomY - weekdayFontHeight, weekdayFont, weekday, Graphics.TEXT_JUSTIFY_RIGHT);
     }
 
-    // おやすみモード + 通知アイコン + 件数を中心上部に配置。
-    // DNDはOFF時はアイコンを描画せず、通知アイコン+件数のみを中央配置する。
-    // 通知件数が0の場合は通知アイコン・件数を非表示にし、DND ONなら三日月アイコンのみを
-    // 単独で中心（縦の中央線）に配置する。
+    // スマホ接続 + おやすみモード + 通知アイコン + 件数を中心上部に一列で配置する。
+    // 各要素は該当時のみ表示し（スマホ=未接続、DND=ON、通知=1件以上）、
+    // 表示される要素だけで合計幅を求めて中心（縦の中央線）に揃える。
     function drawTopRow(dc as Dc, centerX as Numeric, centerY as Numeric) as Void {
         var settings = System.getDeviceSettings();
         var color = isSleeping ? COLOR_DIM : Graphics.COLOR_WHITE;
         var rowY = centerY - TOP_ROW_OFFSET;
+        var font = isSleeping ? smallDimFont : smallActiveFont;
 
-        if (settings.notificationCount == 0) {
-            if (settings.doNotDisturb) {
-                drawDnd(dc, centerX, rowY, color);
-            }
+        var showPhone = !settings.phoneConnected;
+        var showDnd = settings.doNotDisturb;
+        var showNotif = settings.notificationCount > 0;
+
+        var countStr = settings.notificationCount.toString();
+        var dndW = DND_OUTER_R * 2;
+        var notifW = NOTIF_ICON_W + ROW_GAP2 + dc.getTextWidthInPixels(countStr, font);
+
+        var totalWidth = 0;
+        var itemCount = 0;
+        if (showPhone) {
+            totalWidth += PHONE_W;
+            itemCount += 1;
+        }
+        if (showDnd) {
+            totalWidth += dndW;
+            itemCount += 1;
+        }
+        if (showNotif) {
+            totalWidth += notifW;
+            itemCount += 1;
+        }
+        if (itemCount == 0) {
             return;
         }
-
-        var font = isSleeping ? smallDimFont : smallActiveFont;
-        var countStr = settings.notificationCount.toString();
-        var countWidth = dc.getTextWidthInPixels(countStr, font);
-        var dndW = DND_OUTER_R * 2;
-
-        var totalWidth = NOTIF_ICON_W + ROW_GAP2 + countWidth;
-        if (settings.doNotDisturb) {
-            totalWidth += dndW + ROW_GAP1;
-        }
+        totalWidth += ROW_GAP1 * (itemCount - 1);
         var cursorX = centerX - totalWidth / 2;
 
-        if (settings.doNotDisturb) {
+        if (showPhone) {
+            drawPhoneIcon(dc, cursorX, rowY, color);
+            cursorX += PHONE_W + ROW_GAP1;
+        }
+
+        if (showDnd) {
             drawDnd(dc, cursorX + DND_OUTER_R, rowY, color);
             cursorX += dndW + ROW_GAP1;
         }
 
-        var iconIndex = Application.Properties.getValue("NotificationIcon") as Number;
-        drawNotifIcon(dc, cursorX, rowY, NOTIF_ICON_W, iconIndex, color);
-        cursorX += NOTIF_ICON_W + ROW_GAP2;
+        if (showNotif) {
+            var iconIndex = Application.Properties.getValue("NotificationIcon") as Number;
+            drawNotifIcon(dc, cursorX, rowY, NOTIF_ICON_W, iconIndex, color);
+            cursorX += NOTIF_ICON_W + ROW_GAP2;
 
+            dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(cursorX, rowY, font, countStr, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
+    }
+
+    // スマホ未接続アイコン（縦長の端末 + 下部のホームボタン + 斜線）。xは左端、cyは縦中心。
+    function drawPhoneIcon(dc as Dc, x as Numeric, cy as Numeric, color as Numeric) as Void {
+        var top = cy - PHONE_H / 2;
         dc.setColor(color, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cursorX, rowY, font, countStr, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.setPenWidth(2);
+        dc.drawRoundedRectangle(x, top, PHONE_W, PHONE_H, 3);
+        dc.fillRectangle(x + PHONE_W / 2 - 2, top + PHONE_H - 5, 4, 2);
+
+        // 斜線。背景色の太線で端末の輪郭を切ってから細線を重ね、線同士を分離して見せる
+        var x1 = x - 3;
+        var y1 = top - 1;
+        var x2 = x + PHONE_W + 3;
+        var y2 = top + PHONE_H + 1;
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
+        dc.setPenWidth(6);
+        dc.drawLine(x1, y1, x2, y2);
+        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+        dc.setPenWidth(2);
+        dc.drawLine(x1, y1, x2, y2);
     }
 
     // おやすみモードを三日月で描画。cx,cyは外側の円の中心。
